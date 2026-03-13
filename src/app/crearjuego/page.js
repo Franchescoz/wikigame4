@@ -1,4 +1,4 @@
-import { Navbar } from "../layout";
+import { Navbar } from "@/app/Navbar";
 
 import CrearVistaJuego from "./CrearJuego";
 

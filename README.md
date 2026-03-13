@@ -53,3 +53,30 @@ Perfil y editarPerfil:
 Estos dos también están en un solo componente , para empezar tuve que cambiar la forma en se muestra las imágenes de los favoritos porque por alguna razón daba problema con los tamaños y no aparecían entonces me he visto obligado a cambiarlo para que se muestran,como en los demás lo he separados en dos columnas con flex , aunque con los favoritos he tenido que meter favoritos y las imágenes en un grid de una columna y después un flex para las imágenes, con los botones he tenido que crea botones parte como por ejemplo de banear hay dos uno con texto para la versión de PC que está debajo de lo que es la foto de perfil y el otro que es un icono que en la versión del móvil aparecerá arriba  y estos botones aparecerán cuando una cuenta admin esté sobre un perfil de un  usuario , mismo pasa con los botones de cancelar y volver que he tenido que hacer dos botones para el caso de movil y otro para el caso de pantallas más grandes, en la versión de movil las dos estan hechas en una columna con flex, lso demas son los mismo estilos ,fondo y recuadro negro como los demas .
  
 
+En caso de no tener el archivo .env.local (que a lo mejor la he mandado  el proyecto entero )
+Crear el archivo manualmente con ese nombre (.env.local.) y añadir dentro estas variables de entornos
+
+
+La base de datos se compone de cuatro tablas que son juego, usuario, favorito y image_juego 
+
+NEXT_PUBLIC_SUPABASE_URL=https://eerrowbyeaxocafugiqp.supabase.co//->para evitar que se metan
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_oENKkZLxvX1nOx7nI4d4KQ_jamo-U8O//->para evitar que se metan
+
+Instrucciones de ejecución:
+Primero ejecutamos el proyecto que tenemos que tener descargado previamente, con el comando npm run dev, y nos metemos a la url
+
+Aparecemos en el landing donde hay dos opciones o vas a registrarte o iniciar sesión, Dependiendo de en cual te hayas mentido , rellenas los datos y te registras o rellenas los inicio de sesión una vez hecho esto te llevará al home o lista de tarjetas de juegos. Puedes por un lado meterte a tu perfil, editarlo o meterte algún juego y editarlo también.
+
+Por último tienes la opción de darle al botón de un cuadrado mas que te llevara a la vis de crear juego donde píldoras crear un juego, también está la posibilidad de meterte al perfil de otra persona y banearlo pero para ello necesitaras saber su id.
+
+usuario: Tiene la información del usuario como  nombre, contraseña,email,descripción,imagen Perfil,admin(Booleano) y fecha de registro.
+Tiene relación con la tabla favoritos donde está como foránea su id y con la tabla auth.users que es propia de supabase.
+
+juego: Tiene la información del juego como título , consolas(Text) y tipo_juego(text), descripción.
+Tiene relación con la tabla favoritos donde está como foránea su id y con la tablaimage_juego donde también tiene como foránea su id
+
+favoritos:Tiene los ids de juego y usuario
+
+image_juego:Tiene el id de juego ,image_url e imagenPrincipal(Booleano)
+La url que tiene es para recoger la imagen desde storage/files/buckets donde hay dos uno para las fotos de perfil y otro para las imágenes de los juegos.
+
