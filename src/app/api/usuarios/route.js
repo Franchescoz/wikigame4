@@ -5,37 +5,16 @@ const supabaseKEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const supabase = createClient(supabaseURL, supabaseKEY);
 
 export async function GET(request) {
-    try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get("id");
+    const { data, error } = await supabase
+        .from("usuario")
+        .select(`id, nombre, descripcion, imagenPerfil, fecha_registro`)
+        .order("nombre", { ascending: true });
 
-        if (id) {
-            const { data: usuario, error } = await supabase
-                .from("usuario")
-                .select("*")
-                .eq("id", id)
-                .single();
 
-            if (error || !usuario) {
-                return new Response(JSON.stringify({ error: "Usuario no encontrado" }), { status: 404 });
-            }
-
-            return new Response(JSON.stringify(usuario), { status: 200 });
-        } else {
-            const { data: usuarios, error } = await supabase
-                .from("usuario")
-                .select("id, nombre, imagenPerfil")
-                .order("nombre", { ascending: true });
-
-            if (error) {
-                return new Response(JSON.stringify({ error: error.message }), { status: 400 });
-            }
-
-            return new Response(JSON.stringify(usuarios), { status: 200 });
-        }
-    } catch (err) {
-        return new Response(JSON.stringify({ error: "Error en el servidor" }), { status: 500 });
-    }
+    return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+    });
 }
 
 export async function DELETE(request) {
