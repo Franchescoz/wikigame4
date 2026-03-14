@@ -38,15 +38,29 @@ export default function VistaJuego({params}) {
 
   async function toggleFavorito() {
     if (!userId) return alert("Debes iniciar sesión");
-    if (esFavorito) {
-      const { error } = await supabase.from("favorito").delete().eq("id_usuario", userId).eq("id_juego", id);
-      if (!error) setEsFavorito(false);
-    } else {
-      const { error } = await supabase.from("favorito").insert([{ id_usuario: userId, id_juego: id }]);
-      if (!error) setEsFavorito(true);
-    }
-  }
 
+    try {
+        const response = await fetch("/api/favorito", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId: userId,
+                juegoId: id,
+                esFavorito: esFavorito
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            setEsFavorito(data.estado);
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error en favoritos:", error);
+    }
+}
   async function juegoFetch() {
     const response= await fetch("/api/juegos/juegoid?id="+id)
     const juego = await response.json()
@@ -65,16 +79,36 @@ export default function VistaJuego({params}) {
     setEditar(!editar)
   }
 
-  async function handleUploadImage(e) {
+ 
+async function handleUploadImage(e) {
     const file = e.target.files[0];
     if (!file) return;
     if ((juegoN.image_juego?.length || 0) >= 4) return alert("Máximo 4 imágenes");
-    const fileName = `${Date.now()}_${file.name}`; 
-    const { error: uploadError } = await supabase.storage.from("images").upload(fileName, file);
-    if (uploadError) return;
-    await supabase.from("image_juego").insert([{id_juego: juegoN.id, image_url: fileName}]);
-    setJuegoN({...juegoN, image_juego: [...(juegoN.image_juego || []), { image_url: fileName }]});
-  }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("id_juego", juegoN.id);
+
+    try {
+        const response = await fetch("/api/image_juego", {
+            method: "PUT",
+            body: formData 
+        });
+
+        const nuevaImagen = await response.json();
+
+        if (response.ok) {
+            setJuegoN({
+                ...juegoN,
+                image_juego: [...(juegoN.image_juego || []), nuevaImagen]
+            });
+        } else {
+            alert("Error: " + nuevaImagen.error);
+        }
+    } catch (error) {
+        console.error("Error al subir:", error);
+    }
+}
 
   if (editar) {
     return (
@@ -115,7 +149,7 @@ export default function VistaJuego({params}) {
       <div className="relative bg-night w-[95%] max-w-screen-xl rounded-xl p-6 flex flex-col md:flex-row gap-6 shadow-2xl min-h-[40rem] text-white">
         <div className="absolute top-3 right-3 flex flex-col sm:flex-row gap-2">
           <button onClick={toggleFavorito} className="hover:border rounded-md p-1 hover:border-Lavanda transition">
-            <img src={esFavorito ? "/heart.png" : "/heart.png"} className="w-8 h-8"/>
+            <img src={esFavorito ? "/heartFav.png" : "/heart.png"} className="w-8 h-8"/>
           </button>
           <button onClick={()=>setEditar(!editar)} className="hover:border p-1 hover:border-Lavanda rounded-md transition"><img src="/pencil-square.png" className="w-8 h-8"/></button>
         </div>

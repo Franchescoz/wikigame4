@@ -30,30 +30,51 @@ export default function Perfil({ params }) {
     }, [perfilId]);
 
     async function fetchDatosUsuario() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            setUserId(user.id);
-            try {
-                const response = await fetch(`/api/usuarios?id=${perfilId}`);
-                if (!response.ok) return;
-                const data = await response.json();
-                setNombre(data.nombre || "");
-                setDescripcion(data.descripcion || "");
-                const img = data.imagenPerfil || "";
-                setImagenPerfil(img.includes("http") ? img : `${perfilStorageUrl}${img}`);
-                setFechaRegistro(data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString() : "---");
-                const { data: favs, error } = await supabase.from('favorito').select(`id_juego, juego (id, titulo, image_juego (image_url))`).eq('id_usuario', perfilId);
-                if (!error && favs) {
-                    setJuegos(favs.map(f => ({
-                        id: f.juego.id,
-                        titulo: f.juego.titulo,
-                        src: f.juego.image_juego?.[0]?.image_url ? `${juegosStorageUrl}${f.juego.image_juego[0].image_url}` : "/logo 3.jpg"
-                    })));
-                }
-            } catch (err) { console.error(err); }
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+        setUserId(user.id);
+        try {
+           
+            const response = await fetch(`/api/usuarios/perfilid?id=${perfilId}`);
+            
+            if (!response.ok) {
+                console.error("Error al obtener el perfil");
+                setLoading(false);
+                return;
+            }
+
+            const data = await response.json();
+
+           
+            setNombre(data.nombre || "");
+            setDescripcion(data.descripcion || "");
+            
+            const img = data.imagenPerfil || "";
+            setImagenPerfil(img.includes("http") ? img : `${perfilStorageUrl}${img}`);
+            setFechaRegistro(data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString() : "---");
+
+           
+            const { data: favs, error } = await supabase
+                .from('favorito')
+                .select(`id_juego, juego (id, titulo, image_juego (image_url))`)
+                .eq('id_usuario', perfilId);
+
+            if (!error && favs) {
+                setJuegos(favs.map(f => ({
+                    id: f.juego.id,
+                    titulo: f.juego.titulo,
+                    src: f.juego.image_juego?.[0]?.image_url 
+                        ? `${juegosStorageUrl}${f.juego.image_juego[0].image_url}` 
+                        : "/logo 3.jpg"
+                })));
+            }
+        } catch (err) { 
+            console.error("Error en la petición:", err); 
         }
-        setLoading(false);
     }
+    setLoading(false);
+}
 
     async function handleBanear() {
         if (window.confirm("¿Seguro que quieres eliminar a este usuario?")) {
@@ -80,17 +101,28 @@ export default function Perfil({ params }) {
         setImagenPerfil(`${perfilStorageUrl}${filePath}`);
     }
 
-    async function guardarEdicion(e) { 
-        e.preventDefault();
-        const nombreArchivo = imagenPerfil.split('/').pop();
-        const { error } = await supabase.from('usuario').update({ nombre, descripcion, imagenPerfil: nombreArchivo }).eq('id', userId);
-        if (!error) setEditar(false);
-    }
+ async function guardarEdicion(e) { 
+    e.preventDefault();
+    const nombreArchivo = imagenPerfil.split('/').pop();
+    const response = await fetch("/api/usuarios", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            id: userId,
+            usuario: { nombre, descripcion, imagenPerfil: nombreArchivo }
+        })
+    });
+    if (response.ok) setEditar(false);
+}
 
-    async function eliminarJuego(id) {
-        const { error } = await supabase.from('favorito').delete().eq('id_usuario', userId).eq('id_juego', id);
-        if (!error) setJuegos(juegos.filter(juego => juego.id !== id));
-    }
+  async function eliminarJuego(juegoId) {
+    const response = await fetch("/api/favorito", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, juegoId })
+    });
+    if (response.ok) setJuegos(juegos.filter(j => j.id !== juegoId));
+}
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-white bg-night font-montserrat uppercase">Cargando...</div>;
 
