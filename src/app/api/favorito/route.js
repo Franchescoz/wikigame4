@@ -5,6 +5,7 @@ const supabaseKEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const supabase = createClient(supabaseURL, supabaseKEY);
 
 
+
 export async function PUT(request) {
     try {
         const { userId, juegoId, esFavorito } = await request.json();

@@ -8,6 +8,7 @@ export default function VistaJuego({params}) {
   const [fotoPrincipal, setFotoPrincipal] = useState(0);
   const [esFavorito, setEsFavorito] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [esAdmin, setEsAdmin] = useState(false); 
   
   const{id}= use(params)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,19 +23,35 @@ export default function VistaJuego({params}) {
     juegoFetch();
   },[])
 
-  async function checkUserAndFav() {
+ async function checkUserAndFav() {
     const { data: { user } } = await supabase.auth.getUser();
+    
     if (user) {
-      setUserId(user.id);
-      const { data } = await supabase
-        .from("favorito")
-        .select("*")
-        .eq("id_usuario", user.id)
-        .eq("id_juego", id)
-        .single();
-      if (data) setEsFavorito(true);
+        setUserId(user.id);
+
+        try {
+          
+            const responseUser = await fetch(`/api/usuarios/perfilid?id=${user.id}`);
+            if (responseUser.ok) {
+                const userData = await responseUser.json();
+                setEsAdmin(userData.admin === true);
+            }
+
+           
+            const responseFav = await fetch(`/api/favorito/favoritoid?userId=${user.id}`);
+            if (responseFav.ok) {
+                const favs = await responseFav.json();
+                
+                
+                const existe = favs.some(f => f.id_juego == id); 
+                if (existe) setEsFavorito(true);
+            }
+
+        } catch (error) {
+            console.error("Error al verificar usuario/favoritos:", error);
+        }
     }
-  }
+}
 
   async function toggleFavorito() {
     if (!userId) return alert("Debes iniciar sesión");
@@ -60,7 +77,8 @@ export default function VistaJuego({params}) {
     } catch (error) {
         console.error("Error en favoritos:", error);
     }
-}
+  }
+
   async function juegoFetch() {
     const response= await fetch("/api/juegos/juegoid?id="+id)
     const juego = await response.json()
@@ -79,8 +97,7 @@ export default function VistaJuego({params}) {
     setEditar(!editar)
   }
 
- 
-async function handleUploadImage(e) {
+  async function handleUploadImage(e) {
     const file = e.target.files[0];
     if (!file) return;
     if ((juegoN.image_juego?.length || 0) >= 4) return alert("Máximo 4 imágenes");
@@ -108,7 +125,7 @@ async function handleUploadImage(e) {
     } catch (error) {
         console.error("Error al subir:", error);
     }
-}
+  }
 
   if (editar) {
     return (
@@ -151,7 +168,12 @@ async function handleUploadImage(e) {
           <button onClick={toggleFavorito} className="hover:border rounded-md p-1 hover:border-Lavanda transition">
             <img src={esFavorito ? "/heartFav.png" : "/heart.png"} className="w-8 h-8"/>
           </button>
-          <button onClick={()=>setEditar(!editar)} className="hover:border p-1 hover:border-Lavanda rounded-md transition"><img src="/pencil-square.png" className="w-8 h-8"/></button>
+         
+          {esAdmin && (
+            <button onClick={()=>setEditar(!editar)} className="hover:border p-1 hover:border-Lavanda rounded-md transition">
+              <img src="/pencil-square.png" className="w-8 h-8"/>
+            </button>
+          )}
         </div>
         <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
           <img src={`${supabaseUrl}/storage/v1/object/public/images/${juegoN.image_juego?.[fotoPrincipal]?.image_url}`} className="w-56 h-80 rounded-lg object-cover border-2 border-Lavanda shadow-lg" />

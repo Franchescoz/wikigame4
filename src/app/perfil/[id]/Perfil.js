@@ -14,6 +14,7 @@ export default function Perfil({ params }) {
     const [imagenPerfil, setImagenPerfil] = useState(null);
     const [juegos, setJuegos] = useState([]);
     const [userId, setUserId] = useState(null);
+    const [esAdmin, setEsAdmin] = useState(false);
 
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -29,38 +30,34 @@ export default function Perfil({ params }) {
         }
     }, [perfilId]);
 
-    async function fetchDatosUsuario() {
+   async function fetchDatosUsuario() {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
         setUserId(user.id);
         try {
            
-            const response = await fetch(`/api/usuarios/perfilid?id=${perfilId}`);
-            
-            if (!response.ok) {
-                console.error("Error al obtener el perfil");
-                setLoading(false);
-                return;
+            const resAdmin = await fetch(`/api/usuarios/perfilid?id=${user.id}`);
+            if (resAdmin.ok) {
+                const dataAdmin = await resAdmin.json();
+                setEsAdmin(dataAdmin.admin === true);
             }
 
-            const data = await response.json();
+          
+            const response = await fetch(`/api/usuarios/perfilid?id=${perfilId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setNombre(data.nombre || "");
+                setDescripcion(data.descripcion || "");
+                const img = data.imagenPerfil || "";
+                setImagenPerfil(img.includes("http") ? img : `${perfilStorageUrl}${img}`);
+                setFechaRegistro(data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString() : "---");
+            }
 
            
-            setNombre(data.nombre || "");
-            setDescripcion(data.descripcion || "");
-            
-            const img = data.imagenPerfil || "";
-            setImagenPerfil(img.includes("http") ? img : `${perfilStorageUrl}${img}`);
-            setFechaRegistro(data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString() : "---");
-
-           
-            const { data: favs, error } = await supabase
-                .from('favorito')
-                .select(`id_juego, juego (id, titulo, image_juego (image_url))`)
-                .eq('id_usuario', perfilId);
-
-            if (!error && favs) {
+            const resFavs = await fetch(`/api/favorito/favoritoid?userId=${perfilId}`);
+            if (resFavs.ok) {
+                const favs = await resFavs.json();
                 setJuegos(favs.map(f => ({
                     id: f.juego.id,
                     titulo: f.juego.titulo,
@@ -69,6 +66,7 @@ export default function Perfil({ params }) {
                         : "/logo 3.jpg"
                 })));
             }
+
         } catch (err) { 
             console.error("Error en la petición:", err); 
         }
@@ -101,28 +99,28 @@ export default function Perfil({ params }) {
         setImagenPerfil(`${perfilStorageUrl}${filePath}`);
     }
 
- async function guardarEdicion(e) { 
-    e.preventDefault();
-    const nombreArchivo = imagenPerfil.split('/').pop();
-    const response = await fetch("/api/usuarios", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            id: userId,
-            usuario: { nombre, descripcion, imagenPerfil: nombreArchivo }
-        })
-    });
-    if (response.ok) setEditar(false);
-}
+    async function guardarEdicion(e) { 
+        e.preventDefault();
+        const nombreArchivo = imagenPerfil.split('/').pop();
+        const response = await fetch("/api/usuarios", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: userId,
+                usuario: { nombre, descripcion, imagenPerfil: nombreArchivo }
+            })
+        });
+        if (response.ok) setEditar(false);
+    }
 
-  async function eliminarJuego(juegoId) {
-    const response = await fetch("/api/favorito", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, juegoId })
-    });
-    if (response.ok) setJuegos(juegos.filter(j => j.id !== juegoId));
-}
+    async function eliminarJuego(juegoId) {
+        const response = await fetch("/api/favorito", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: userId, juegoId: juegoId, esFavorito: true })
+        });
+        if (response.ok) setJuegos(juegos.filter(j => j.id !== juegoId));
+    }
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-white bg-night font-montserrat uppercase">Cargando...</div>;
 
@@ -174,19 +172,18 @@ export default function Perfil({ params }) {
                     {imagenPerfil && <img src={imagenPerfil} className="w-80 h-80 object-cover rounded-full border-2 border-Lavanda" onError={(e) => e.target.src = "/logo 3.jpg"}/>}
                     <label>Fecha de registro : {fechaRegistro}</label>
                     
-                
                     {userId === perfilId && (
                         <button onClick={handleCerrarSesion} className="mt-4 border border-red-500 bg-transparent text-red-500 hover:bg-red-500 hover:text-white px-6 py-2 rounded transition font-medulaone text-xl">Cerrar Sesión</button>
                     )}
-                    {userId !== perfilId && (
-                        <button onClick={handleBanear} className="mt-4 hidden md:block border border-red-500 bg-red-500 text-white px-8 py-2 rounded hover:bg-red-700 transition font-medulaone text-xl">Banear Usuario</button>
-                    )}
 
-                    
-                    {userId !== perfilId && (
-                        <button onClick={handleBanear} className="absolute top-3 right-3 block md:hidden">
-                            <img src="/ban.png" className="w-8 h-8"/>
-                        </button>
+                   
+                    {esAdmin && userId !== perfilId && (
+                        <>
+                            <button onClick={handleBanear} className="mt-4 hidden md:block border border-red-500 bg-red-500 text-white px-8 py-2 rounded hover:bg-red-700 transition font-medulaone text-xl">Banear Usuario</button>
+                            <button onClick={handleBanear} className="absolute top-3 right-3 block md:hidden">
+                                <img src="/ban.png" className="w-8 h-8"/>
+                            </button>
+                        </>
                     )}
                 </div>
                 

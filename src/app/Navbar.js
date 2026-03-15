@@ -3,12 +3,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
-export  function Navbar(props) {
+
+export function Navbar(props) {
   const router = useRouter();
   const [localSearchTerm, setLocalSearchTerm] = useState("");
   const [localTipo, setLocalTipo] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState("/iconoPerfil.png");
   const [userId, setUserId] = useState("");
+  const [esAdmin, setEsAdmin] = useState(false); // Nuevo estado para el rol admin
 
   const searchTerm = props.searchTerm ?? localSearchTerm;
   const setSearchTerm = props.setSearchTerm ?? setLocalSearchTerm;
@@ -26,9 +28,14 @@ export  function Navbar(props) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      const { data, error } = await supabase.from("usuario").select("imagenPerfil").eq("id", user.id).single();
-      if (!error && data?.imagenPerfil) {
-        setFotoPerfil(data.imagenPerfil.includes("http") ? data.imagenPerfil : `${perfilStorageUrl}${data.imagenPerfil}`);
+      
+      const { data, error } = await supabase.from("usuario").select("imagenPerfil, admin").eq("id", user.id).single();
+      
+      if (!error && data) {
+        setEsAdmin(data.admin === true); 
+        if (data.imagenPerfil) {
+          setFotoPerfil(data.imagenPerfil.includes("http") ? data.imagenPerfil : `${perfilStorageUrl}${data.imagenPerfil}`);
+        }
       }
     }
   }
@@ -42,7 +49,8 @@ export  function Navbar(props) {
     <div className="w-full relative flex flex-row items-center justify-between bg-white text-white px-2 sm:px-6 py-2 sm:py-4">
       <div className="flex flex-col items-center">
         <Link href={"/listatarjetasjuegos?search=&tipo="}><h1 className="text-2xl sm:text-5xl font-bold font-Gill text-Lavanda z-10">WIKIGAME</h1></Link>
-        <p className="hidden text-sm font-medium text-Lavanda">Modo Admin</p>
+        
+        {esAdmin && <p className="block text-sm font-medium text-Lavanda">Modo Admin</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-1 sm:static sm:flex-row">
@@ -51,8 +59,19 @@ export  function Navbar(props) {
       </form>
 
       <div className="flex flex-row items-center justify-end w-full sm:w-auto gap-0">
-        <Link href="/crearjuego"><button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2"><img src="/crear.png" alt="Crear" /></button></Link>
-        <Link href={userId ? `/perfil/${userId}` : "/iniciarsesion"}><button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2 flex items-center justify-center"><img src={fotoPerfil} alt="Perfil" className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda" onError={(e) => e.target.src = "/iconoPerfil.png"} /></button></Link>
+      
+        {esAdmin && (
+          <Link href="/crearjuego">
+            <button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2">
+              <img src="/crear.png" alt="Crear" />
+            </button>
+          </Link>
+        )}
+        <Link href={userId ? `/perfil/${userId}` : "/iniciarsesion"}>
+          <button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2 flex items-center justify-center">
+            <img src={fotoPerfil} alt="Perfil" className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda" onError={(e) => e.target.src = "/iconoPerfil.png"} />
+          </button>
+        </Link>
       </div>
     </div>
   );
