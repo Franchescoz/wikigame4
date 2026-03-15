@@ -10,7 +10,7 @@ export function Navbar(props) {
   const [localTipo, setLocalTipo] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState("/iconoPerfil.png");
   const [userId, setUserId] = useState("");
-  const [esAdmin, setEsAdmin] = useState(false); // Nuevo estado para el rol admin
+  const [esAdmin, setEsAdmin] = useState(false); 
 
   const searchTerm = props.searchTerm ?? localSearchTerm;
   const setSearchTerm = props.setSearchTerm ?? setLocalSearchTerm;

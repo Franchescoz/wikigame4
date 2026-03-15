@@ -47,36 +47,18 @@ export default function IniciarSesion() {
           Iniciar sesión
         </h1>
 
-        <input 
-          type="email" 
-          placeholder="@ Correo electrónico" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-          className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
-        />
+        <input type="email" placeholder="@ Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" />
         <p className="text-white self-start text-sm">
           {email.includes("@") ? "Correo válido" : "Introduce un correo electrónico"}
         </p>
 
-        <input 
-          type="password" 
-          placeholder="🔒 Contraseña" 
-          value={contraseña} 
-          onChange={(e) => setContraseña(e.target.value)} 
-          required 
-          className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
-        />
+        <input   type="password"  placeholder="🔒 Contraseña" value={contraseña} onChange={(e) => setContraseña(e.target.value)} required className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" />
         <p className="text-white self-start text-sm">
           {contraseña.length > 7 ? "Contraseña lista" : "Mínimo 8 caracteres"}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 mt-6 w-full">
-          <button 
-            type="submit" 
-            disabled={cargando}
-            className="w-full sm:w-1/2 bg-Lavanda py-3 rounded-full font-medulaone text-white font-bold text-xl hover:bg-purple-700 transition disabled:opacity-50"
-          >
+          <button type="submit" disabled={cargando}className="w-full sm:w-1/2 bg-Lavanda py-3 rounded-full font-medulaone text-white font-bold text-xl hover:bg-purple-700 transition disabled:opacity-50">
             {cargando ? "Cargando..." : "Iniciar sesión"}
           </button>
 

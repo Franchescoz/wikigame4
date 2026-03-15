@@ -72,12 +72,7 @@ function Juego({ objeto }) {
     <div className="rounded-3xl shadow-md overflow-hidden p-4 hover:scale-105 transition bg-white border border-gray-100">
       <Link href={"/vistajuego/" + objeto.id}>
         <div className="flex justify-center">
-          <img 
-            src={`${supabaseUrl}/storage/v1/object/public/images/${objeto.image_juego?.[0]?.image_url}`} 
-            alt={objeto.titulo} 
-            className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-xl" 
-            onError={(e) => e.target.src = "/logo 3.jpg"}
-          />
+          <img src={`${supabaseUrl}/storage/v1/object/public/images/${objeto.image_juego?.[0]?.image_url}`}  alt={objeto.titulo}  className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-xl"  onError={(e) => e.target.src = "/logo 3.jpg"}/>
         </div>
         <p className="w-full mt-3 text-center font-semibold text-sm text-black truncate">{objeto.titulo}</p>
       </Link>
@@ -92,12 +87,7 @@ function Usuario({ objeto }) {
     <div className="rounded-3xl shadow-md overflow-hidden p-4 hover:scale-105 transition bg-white border border-gray-100">
       <Link href={"/perfil/" + objeto.id}>
         <div className="flex justify-center">
-          <img 
-            src={foto} 
-            alt={objeto.nombre} 
-            className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-full shadow-inner border-2 border-Lavanda/20" 
-            onError={(e) => e.target.src = "/logo 3.jpg"}
-          />
+          <img src={foto}  alt={objeto.nombre} className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-full shadow-inner border-2 border-Lavanda/20" onError={(e) => e.target.src = "/logo 3.jpg"}/>
         </div>
         <p className="w-full mt-3 text-center font-semibold text-sm text-black truncate">{objeto.nombre}</p>
       </Link>
