@@ -7,7 +7,7 @@ export  async function GET(request) {
    const id=  searchParams.get("id")
    
 
-    const {data: juego,error}= await supabase.from("juego").select("*").eq("id",id).single()
+    const {data: juego,error}= await supabase.from("juego").select(`id,titulo,consolas,tipo_juego,descripcion,image_juego ( image_url )`).eq("id",id).single()
     if(error){
         return new Response(JSON.stringify(error),{status:400,
         headers:{"Content-Type":"Application/json"}

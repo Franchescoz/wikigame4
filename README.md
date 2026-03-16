@@ -53,3 +53,47 @@ Perfil y editarPerfil:
 Estos dos también están en un solo componente , para empezar tuve que cambiar la forma en se muestra las imágenes de los favoritos porque por alguna razón daba problema con los tamaños y no aparecían entonces me he visto obligado a cambiarlo para que se muestran,como en los demás lo he separados en dos columnas con flex , aunque con los favoritos he tenido que meter favoritos y las imágenes en un grid de una columna y después un flex para las imágenes, con los botones he tenido que crea botones parte como por ejemplo de banear hay dos uno con texto para la versión de PC que está debajo de lo que es la foto de perfil y el otro que es un icono que en la versión del móvil aparecerá arriba  y estos botones aparecerán cuando una cuenta admin esté sobre un perfil de un  usuario , mismo pasa con los botones de cancelar y volver que he tenido que hacer dos botones para el caso de movil y otro para el caso de pantallas más grandes, en la versión de movil las dos estan hechas en una columna con flex, lso demas son los mismo estilos ,fondo y recuadro negro como los demas .
  
 
+Este proyecto esa formado por un lado la base de datos que contiene estas 4 tablas(juego, usuario, favorito y image_juego ) , mas una que es la auth.user que la tuve que usar ya para arreglar unos problemas con algunas funcionalidades, cada tabla guarda la informacion que requiere en la de los juego, la de juego y usuario, la de los usuarios, en favoritos se guarda la id del usuario y del juego que se ha marcado favorito y en la de image_juego se guarda la ide del juego y la imagen que va a pertencer a ese juego y por ultimo de la base de datos , esas imagenes se guardan en el storage/file/buckets que es parte de supabase y desde ahi se cogen la s imagenes.
+
+Despues tenemos la api que en este proyecto tenemos varios routes, aunque hay una en especifico  que es el de sesion. Los routes son dos para juegos donde se hacen el get , put y post en uno y en el otro se hace el get por id para la vistajuego y por el otro lado igual pero para los usuarios un route para get, delete, put y post y el otro para el usuario individual. Tambien tenemos un route para la a tabla image_juego que hace un put para guardar las imagenes y otro put para favoritos para modificar el que este o no en favoritos, ademas de un delete para borrarlo de favoritos
+
+Por ultimo en el frotend estan las funciones usadas para consumir las api por ejemplo en listajuego esta las funciones que usan los get de juegos y usuario en vistajuego esta el get por id de juegos y el put para modificar los datos e imagenes del juego, en perfil lo mismo con usuario y despues tenemos el registrar que es el post de los usuarios y la vista crear juego que es para el post de crear las vista juegos que todos estos datos obviamente se añaden o modifican en la base de datos.
+
+Descripción de endpoints creados:
+Como ya se ha dicho tenemos los get que recogen todos los datos de juego y usuario para mostrarlos en listatarjetasjuegos,ademas que el get de juego tiene la particularidad que para poder mostrar la imagen tambien tiene añadido el campo imagen_url de la tabla image_juego.
+
+Estan los get por id para mostrar un unico juego en la vista juego o usuario en el perfil que aqui pasa lo mismo que en el anterior para jeugo tiene un campo añadidod para mostrar las imagenes del juego
+
+Ahora vamos por partes porque tenemos el put de juego que modifica sus campos(titulo,consoslas,tipo_juego,descripcion) pero las imagenes no va por el mismo lado porque para las imagenes se ha tenido que crear un route que hace put a la tabla image_juego para subir las imagenes. En la vista perfil tenemos el put para modificar los datos del usuario ademas del delete para la tabla favoritos y eliminar juegos de favoritos, ademas del delete para banear usuairos(que todavia no esta puesto los roles).
+
+tambien estan los post de usuarios en registrar para crear usuario y el post de crear juego
+
+
+
+Variables de entorno:
+En caso de no tener el archivo .env.local 
+Crear el archivo manualmente con ese nombre (.env.local.) y añadir dentro estas variables de entornos
+NEXT_PUBLIC_SUPABASE_URL=https://eerrowbyeaxocafugiqp.supabase.co//->para evitar que se metan
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_oENKkZLxvX1nOx7nI4d4KQ_jamo-U8O//->para evitar que se metan
+
+
+
+Instrucciones de ejecución:
+Primero ejecutamos el proyecto que tenemos que tener descargado previamente, con el comando npm run dev, y nos metemos a la url
+
+Aparecemos en el landing donde hay dos opciones o vas a registrarte o iniciar sesión, Dependiendo de en cual te hayas mentido , rellenas los datos y te registras o rellenas los inicio de sesión una vez hecho esto te llevará al home o lista de tarjetas de juegos. Puedes por un lado meterte a tu perfil, editarlo o meterte algún juego y editarlo también.
+
+Por último tienes la opción de darle al botón de un cuadrado mas que te llevara a la vista de crear juego donde píldoras crear un juego, también está la posibilidad de meterte al perfil de otra persona y banearlo pero para ello necesitaras saber su id.
+
+La base de datos se compone de cuatro tablas que son juego, usuario, favorito y image_juego 
+usuario: Tiene la información del usuario como  nombre, contraseña,email,descripción,imagen Perfil,admin(Booleano) y fecha de registro.
+Tiene relación con la tabla favoritos donde está como foránea su id y con la tabla auth.users que es propia de supabase.
+
+juego: Tiene la información del juego como título , consolas(Text) y tipo_juego(text), descripción.
+Tiene relación con la tabla favoritos donde está como foránea su id y con la tablaimage_juego donde también tiene como foránea su id
+
+favoritos:Tiene los ids de juego y usuario
+
+image_juego:Tiene el id de juego ,image_url e imagenPrincipal(Booleano)
+La url que tiene es para recoger la imagen desde storage/files/buckets donde hay dos uno para las fotos de perfil y otro para las imágenes de los juegos.
+

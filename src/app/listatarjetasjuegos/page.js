@@ -1,6 +1,6 @@
-"use client"; // importante si vas a usar useState
+"use client"; 
 import { useState } from "react";
-import { Navbar } from "../layout";
+import { Navbar } from "@/app/Navbar";
 import { Footer } from "../layout";
 import ListaTarjetasJuegos from "./ListaTarjetasJuegos";
 
