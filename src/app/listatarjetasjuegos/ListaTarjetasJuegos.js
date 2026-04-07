@@ -62,6 +62,13 @@ export default function ListaTarjetasJuegos() {
           <Usuario key={usuario.id} objeto={usuario} />
         ))}
       </div>
+      {juegosFiltrado.length === 0 && usuariosFiltrado.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 w-full">
+          <p className="text-gray-500 text-xl font-medium tracking-tight">
+            No se encontraron datos
+          </p>
+        </div>
+      )}
     </div>
   );
 }
