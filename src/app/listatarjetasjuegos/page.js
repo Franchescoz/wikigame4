@@ -1,5 +1,5 @@
 "use client"; 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Navbar } from "@/app/Navbar";
 import { Footer } from "../layout";
 import ListaTarjetasJuegos from "./ListaTarjetasJuegos";
@@ -10,8 +10,12 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} selectedTipo={selectedTipo} setSelectedTipo={setSelectedTipo} />
-      <ListaTarjetasJuegos searchTerm={searchTerm} selectedTipo={selectedTipo}   />
+      <Navbar searchTerm={searchTerm}  setSearchTerm={setSearchTerm} selectedTipo={selectedTipo} setSelectedTipo={setSelectedTipo} />
+
+      <Suspense fallback={<div>Cargando...</div>}>
+        <ListaTarjetasJuegos searchTerm={searchTerm} selectedTipo={selectedTipo}   />
+      </Suspense>
+
       <Footer />
     </div>
   );
