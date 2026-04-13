@@ -33,7 +33,7 @@ export default function IniciarSesion() {
 
       if (data?.user) {
         router.push("/listatarjetasjuegos")
-        router.refresh()
+       
       }
     } catch (err) {
       setCargando(false)
