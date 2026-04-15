@@ -30,20 +30,19 @@ export default function Perfil({ params }) {
         }
     }, [perfilId]);
 
-   async function fetchDatosUsuario() {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-        setUserId(user.id);
+    async function fetchDatosUsuario() {
         try {
-           
-            const resAdmin = await fetch(`/api/usuarios/perfilid?id=${user.id}`);
-            if (resAdmin.ok) {
-                const dataAdmin = await resAdmin.json();
-                setEsAdmin(dataAdmin.admin === true);
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+                setUserId(user.id);
+                const resAdmin = await fetch(`/api/usuarios/perfilid?id=${user.id}`);
+                if (resAdmin.ok) {
+                    const dataAdmin = await resAdmin.json();
+                    setEsAdmin(dataAdmin.admin === true);
+                }
             }
 
-          
             const response = await fetch(`/api/usuarios/perfilid?id=${perfilId}`);
             if (response.ok) {
                 const data = await response.json();
@@ -54,25 +53,33 @@ export default function Perfil({ params }) {
                 setFechaRegistro(data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString() : "---");
             }
 
-           
             const resFavs = await fetch(`/api/favorito/favoritoid?userId=${perfilId}`);
             if (resFavs.ok) {
                 const favs = await resFavs.json();
                 setJuegos(favs.map(f => ({
                     id: f.juego.id,
                     titulo: f.juego.titulo,
-                    src: f.juego.image_juego?.[0]?.image_url 
-                        ? `${juegosStorageUrl}${f.juego.image_juego[0].image_url}` 
+                    src: f.juego.image_juego?.image_url 
+                        ? `${juegosStorageUrl}${f.juego.image_juego.image_url}` 
                         : "/logo 3.jpg"
                 })));
             }
-
         } catch (err) { 
             console.error("Error en la petición:", err); 
+        } finally {
+            setLoading(false);
         }
     }
-    setLoading(false);
-}
+
+    async function handleCerrarSesion() {
+        const { error } = await supabase.auth.signOut();
+        if (!error) {
+            setUserId(null);
+            setEsAdmin(false);
+            router.push("/iniciarsesion");
+            router.refresh();
+        }
+    }
 
     async function handleBanear() {
         if (window.confirm("¿Seguro que quieres eliminar a este usuario?")) {
@@ -85,13 +92,8 @@ export default function Perfil({ params }) {
         }
     }
 
-    async function handleCerrarSesion() {
-        const { error } = await supabase.auth.signOut();
-        if (!error) router.push("/iniciarsesion");
-    }
-
     async function handleUpload(e) {
-        const file = e.target.files[0];
+        const file = e.target.files;
         if (!file) return;
         const filePath = `${userId}-${Math.random()}.${file.name.split('.').pop()}`;
         const { error } = await supabase.storage.from('perfil').upload(filePath, file);
@@ -176,7 +178,6 @@ export default function Perfil({ params }) {
                         <button onClick={handleCerrarSesion} className="mt-4 border border-red-500 bg-transparent text-red-500 hover:bg-red-500 hover:text-white px-6 py-2 rounded transition font-medulaone text-xl">Cerrar Sesión</button>
                     )}
 
-                   
                     {esAdmin && userId !== perfilId && (
                         <>
                             <button onClick={handleBanear} className="mt-4 hidden md:block border border-red-500 bg-red-500 text-white px-8 py-2 rounded hover:bg-red-700 transition font-medulaone text-xl">Banear Usuario</button>
