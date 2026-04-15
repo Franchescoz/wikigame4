@@ -16,7 +16,7 @@ export default function Home() {
         <ListaTarjetasJuegos searchTerm={searchTerm} selectedTipo={selectedTipo}   />
       </Suspense>
 
-      <Footer />
+      <Footer /> 
     </div>
   );
 }
