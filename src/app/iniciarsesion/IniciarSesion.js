@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/utils/supabase/client"
 import Link from "next/link"
 
 export default function IniciarSesion() {
@@ -10,10 +10,7 @@ export default function IniciarSesion() {
   const [cargando, setCargando] = useState(false)
   const router = useRouter()
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-  )
+  const supabase = createClient()
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -32,8 +29,8 @@ export default function IniciarSesion() {
       }
 
       if (data?.user) {
-        router.push("/listatarjetasjuegos")
         router.refresh()
+        window.location.href = "/listatarjetasjuegos"
       }
     } catch (err) {
       setCargando(false)
@@ -47,23 +44,44 @@ export default function IniciarSesion() {
           Iniciar sesión
         </h1>
 
-        <input type="email" placeholder="@ Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" />
+        <input 
+          type="email" 
+          placeholder="@ Correo electrónico" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+          className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
+        />
         <p className="text-white self-start text-sm">
           {email.includes("@") ? "Correo válido" : "Introduce un correo electrónico"}
         </p>
 
-        <input   type="password"  placeholder="🔒 Contraseña" value={contraseña} onChange={(e) => setContraseña(e.target.value)} required className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" />
+        <input 
+          type="password" 
+          placeholder="🔒 Contraseña" 
+          value={contraseña} 
+          onChange={(e) => setContraseña(e.target.value)} 
+          required 
+          className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
+        />
         <p className="text-white self-start text-sm">
           {contraseña.length > 7 ? "Contraseña lista" : "Mínimo 8 caracteres"}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 mt-6 w-full">
-          <button type="submit" disabled={cargando}className="w-full sm:w-1/2 bg-Lavanda py-3 rounded-full font-medulaone text-white font-bold text-xl hover:bg-purple-700 transition disabled:opacity-50">
+          <button 
+            type="submit" 
+            disabled={cargando} 
+            className="w-full sm:w-1/2 bg-Lavanda py-3 rounded-full font-medulaone text-white font-bold text-xl hover:bg-purple-700 transition disabled:opacity-50"
+          >
             {cargando ? "Cargando..." : "Iniciar sesión"}
           </button>
 
           <Link href="/registrar" className="w-full sm:w-1/2">
-            <button type="button" className="w-full bg-night border-2 border-Lavanda text-white py-3 rounded-full font-medulaone font-bold text-xl hover:bg-Lavanda hover:text-black transition">
+            <button 
+              type="button" 
+              className="w-full bg-night border-2 border-Lavanda text-white py-3 rounded-full font-medulaone font-bold text-xl hover:bg-Lavanda hover:text-black transition"
+            >
               ¿No tienes cuenta?
             </button>
           </Link>
