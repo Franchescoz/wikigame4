@@ -21,33 +21,53 @@ export function Navbar(props) {
   const perfilStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
 
   useEffect(() => {
-    fetchUsuario();
-  }, []);
+    const initUser = async () => {
+      await supabase.auth.refreshSession();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
 
-  async function fetchUsuario() {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      setUserId(user.id);
-      
-      const { data, error } = await supabase
-        .from("usuario")
-        .select("imagenPerfil, admin")
-        .eq("id", user.id)
-        .single();
-      
-      if (!error && data) {
-        setEsAdmin(data.admin === true); 
-        if (data.imagenPerfil) {
-          setFotoPerfil(data.imagenPerfil.includes("http") ? data.imagenPerfil : `${perfilStorageUrl}${data.imagenPerfil}`);
+      if (user) {
+        setUserId(user.id);
+
+        const { data, error } = await supabase
+          .from("usuario")
+          .select("imagenPerfil, admin")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && data) {
+          setEsAdmin(data.admin === true);
+          if (data.imagenPerfil) {
+            setFotoPerfil(
+              data.imagenPerfil.includes("http")
+                ? data.imagenPerfil
+                : `${perfilStorageUrl}${data.imagenPerfil}`
+            );
+          }
         }
+      } else {
+        setUserId("");
+        setEsAdmin(false);
+        setFotoPerfil("/iconoPerfil.png");
       }
-    } else {
-      setUserId("");
-      setEsAdmin(false);
-      setFotoPerfil("/iconoPerfil.png");
-    }
-  }
+    };
+
+    initUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+
+      if (user) {
+        setUserId(user.id);
+      } else {
+        setUserId("");
+        setEsAdmin(false);
+        setFotoPerfil("/iconoPerfil.png");
+      }
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();

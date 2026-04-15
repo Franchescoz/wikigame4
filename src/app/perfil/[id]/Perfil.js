@@ -1,6 +1,6 @@
 "use client"
 import { use, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function Perfil({ params }) {
@@ -16,13 +16,35 @@ export default function Perfil({ params }) {
     const [userId, setUserId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
 
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-    );
+    const supabase = createClient();
 
     const perfilStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
     const juegosStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/`;
+
+    useEffect(() => {
+        const initUser = async () => {
+            await supabase.auth.refreshSession();
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session?.user;
+
+            if (user) {
+                setUserId(user.id);
+            }
+        };
+
+        initUser();
+
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            const user = session?.user;
+            if (user) {
+                setUserId(user.id);
+            } else {
+                setUserId(null);
+            }
+        });
+
+        return () => listener.subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (perfilId) {
@@ -31,11 +53,15 @@ export default function Perfil({ params }) {
     }, [perfilId]);
 
     async function fetchDatosUsuario() {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+
+        if (user) {
+            setUserId(user.id);
+        }
+
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            
             if (user) {
-                setUserId(user.id);
                 const resAdmin = await fetch(`/api/usuarios/perfilid?id=${user.id}`);
                 if (resAdmin.ok) {
                     const dataAdmin = await resAdmin.json();
@@ -59,26 +85,17 @@ export default function Perfil({ params }) {
                 setJuegos(favs.map(f => ({
                     id: f.juego.id,
                     titulo: f.juego.titulo,
-                    src: f.juego.image_juego?.image_url 
-                        ? `${juegosStorageUrl}${f.juego.image_juego.image_url}` 
+                    src: f.juego.image_juego?.[0]?.image_url 
+                        ? `${juegosStorageUrl}${f.juego.image_juego[0].image_url}` 
                         : "/logo 3.jpg"
                 })));
             }
+
         } catch (err) { 
             console.error("Error en la petición:", err); 
-        } finally {
-            setLoading(false);
         }
-    }
 
-    async function handleCerrarSesion() {
-        const { error } = await supabase.auth.signOut();
-        if (!error) {
-            setUserId(null);
-            setEsAdmin(false);
-            router.push("/iniciarsesion");
-            router.refresh();
-        }
+        setLoading(false);
     }
 
     async function handleBanear() {
@@ -92,8 +109,13 @@ export default function Perfil({ params }) {
         }
     }
 
+    async function handleCerrarSesion() {
+        const { error } = await supabase.auth.signOut();
+        if (!error) router.push("/iniciarsesion");
+    }
+
     async function handleUpload(e) {
-        const file = e.target.files;
+        const file = e.target.files[0];
         if (!file) return;
         const filePath = `${userId}-${Math.random()}.${file.name.split('.').pop()}`;
         const { error } = await supabase.storage.from('perfil').upload(filePath, file);
@@ -130,87 +152,28 @@ export default function Perfil({ params }) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[url('/fondoSesion.png')] bg-cover bg-center font-montserrat">
                 <form onSubmit={guardarEdicion} className="relative bg-night w-[95%] max-w-screen-xl min-h-[40rem] rounded-xl p-6 flex flex-col md:flex-row gap-6 shadow-2xl text-white">
-                    <div className="absolute top-2 left-0 right-0 flex justify-between px-4 md:hidden z-20">
-                        <button type="button" onClick={() => setEditar(false)}><img src="/volver.png" className="w-6 h-6"/></button>
-                        <button type="submit"><img src="/check-square.png" className="w-6 h-6"/></button>
-                    </div>
+                    
                     <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
                         {imagenPerfil && <img src={imagenPerfil} className="w-80 h-80 object-cover rounded-full border-2" onError={(e) => e.target.src = "/logo 3.jpg"}/>}
                         <input type="file" id="upload-photo" className="hidden" accept="image/*" onChange={handleUpload}/>
-                        <button type="button" className="mt-2 border px-4 py-1 rounded hover:border-Lavanda transition" onClick={() => document.getElementById('upload-photo').click()}><img src="/upload.png"/></button>
-                        <div className="flex gap-2 mt-4 w-full justify-between hidden md:flex">
-                            <button type="button" onClick={() => setEditar(false)} className="border border-Lavanda bg-Lavanda text-white px-8 py-3 rounded font-medulaone text-lg">Cancelar</button>
-                            <button type="submit" className="border border-Lavanda bg-night hover:bg-Lavanda text-white px-8 py-3 rounded font-medulaone text-lg">Guardar</button>
-                        </div>
+                        <button type="button" onClick={() => document.getElementById('upload-photo').click()}><img src="/upload.png"/></button>
                     </div>
+
                     <div className="flex flex-col gap-3 w-full md:w-2/3 text-white">
-                        <label className="font-motserrat">Usuario:</label>
-                        <input type="text" value={nombre} onChange={(e)=>setNombre(e.target.value)} className="bg-white text-black rounded px-2 py-1"/>
-                        <p>{nombre.length<20?"Límite correcto":"El nombre es demasiado grande"}</p>
-                        <label className="font-motserrat">Descripcion:</label>
-                        <textarea value={descripcion} onChange={(e)=>setDescripcion(e.target.value)} className="bg-white text-black border border-Lavanda rounded px-2 py-2 h-64 resize-none"/>
-                        <p>{descripcion.length>19?"Descripcion válida":"La descripcion es muy corta"}</p>
-                        <div className="flex flex-col w-full mt-4">
-                            <label className="font-motserrat mb-2">Favorito:</label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                {juegos.map(juego => (
-                                    <div key={juego.id} className="relative w-28 h-36">
-                                        <img src={juego.src} className="w-full h-full object-cover" onError={(e) => e.target.src = "/logo 3.jpg"}/>
-                                        <button type="button" onClick={()=>eliminarJuego(juego.id)} className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-10"><img src="/quitar.png" className="w-8 h-8"/></button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <input type="text" value={nombre} onChange={(e)=>setNombre(e.target.value)} />
+                        <textarea value={descripcion} onChange={(e)=>setDescripcion(e.target.value)} />
                     </div>
+
                 </form>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[url('/fondoSesion.png')] bg-cover bg-center font-montserrat">
-            <div className="relative bg-night w-[95%] max-w-screen-xl min-h-[40rem] rounded-xl p-6 flex flex-col md:flex-row gap-6 shadow-2xl text-white">
-                <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
-                    {imagenPerfil && <img src={imagenPerfil} className="w-80 h-80 object-cover rounded-full border-2 border-Lavanda" onError={(e) => e.target.src = "/logo 3.jpg"}/>}
-                    <label>Fecha de registro : {fechaRegistro}</label>
-                    
-                    {userId === perfilId && (
-                        <button onClick={handleCerrarSesion} className="mt-4 border border-red-500 bg-transparent text-red-500 hover:bg-red-500 hover:text-white px-6 py-2 rounded transition font-medulaone text-xl">Cerrar Sesión</button>
-                    )}
-
-                    {esAdmin && userId !== perfilId && (
-                        <>
-                            <button onClick={handleBanear} className="mt-4 hidden md:block border border-red-500 bg-red-500 text-white px-8 py-2 rounded hover:bg-red-700 transition font-medulaone text-xl">Banear Usuario</button>
-                            <button onClick={handleBanear} className="absolute top-3 right-3 block md:hidden">
-                                <img src="/ban.png" className="w-8 h-8"/>
-                            </button>
-                        </>
-                    )}
-                </div>
-                
-                <div className="flex flex-col gap-3 w-full md:w-2/3">
-                    <h1 className="text-2xl font-bold font-motserrat">{nombre}</h1>
-                    <label className="font-motserrat mt-4">Descripcion:</label>
-                    <textarea value={descripcion} readOnly className="bg-night text-white border border-Lavanda rounded p-2 h-64 resize-none font-motserrat"/>
-                    <div className="flex flex-col w-full mt-4">
-                        <label className="font-motserrat mb-2">Favorito:</label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {juegos.map(juego => (
-                                <div key={juego.id} className="relative w-28 h-36">
-                                    <img src={juego.src} className="w-full h-full object-cover rounded shadow-md" onError={(e) => e.target.src = "/logo 3.jpg"} alt={juego.titulo}/>
-                                    <p className="text-[10px] mt-1 text-center truncate">{juego.titulo}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {userId === perfilId && (
-                    <button onClick={() => setEditar(true)} className="absolute right-3 top-0 md:top-3 hover:border p-1 hover:border-Lavanda rounded-md transition">
-                        <img src="/pencil-square.png" className="w-8 h-8"/>
-                    </button>
-                )}
-            </div>
+        <div>
+            {userId && perfilId && userId === perfilId && (
+                <button onClick={() => setEditar(true)}>Editar</button>
+            )}
         </div>
     )
 }
