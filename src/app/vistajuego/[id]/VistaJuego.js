@@ -1,6 +1,6 @@
 "use client"
 import { use, useEffect, useState } from "react"
-import { supabase, supabaseURL } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase"
 
 export default function VistaJuego({params}) {
   const [editar, setEditar] = useState(false); 
