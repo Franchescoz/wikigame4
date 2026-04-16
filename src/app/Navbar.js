@@ -2,85 +2,79 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase"
 
 export function Navbar(props) {
   const router = useRouter();
+
   const [localSearchTerm, setLocalSearchTerm] = useState("");
   const [localTipo, setLocalTipo] = useState("");
+
   const [fotoPerfil, setFotoPerfil] = useState("/iconoPerfil.png");
   const [userId, setUserId] = useState("");
-  const [esAdmin, setEsAdmin] = useState(false); 
+  const [esAdmin, setEsAdmin] = useState(false);
+  const [cargando, setCargando] = useState(true);
 
   const searchTerm = props.searchTerm ?? localSearchTerm;
   const setSearchTerm = props.setSearchTerm ?? setLocalSearchTerm;
   const selectedTipo = props.selectedTipo ?? localTipo;
   const setSelectedTipo = props.setSelectedTipo ?? setLocalTipo;
 
-  const perfilStorageUrl = `${supabaseURL}/storage/v1/object/public/perfil/`;
+  const perfilStorageUrl =
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
 
+  
   useEffect(() => {
-    const initUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
+    async function cargarDatosUsuario() {
+      try {
+        const res = await fetch("/api/sesion");
 
-      if (user) {
-        setUserId(user.id);
+        if (res.ok) {
+          const datos = await res.json();
 
-        const { data, error } = await supabase
-          .from("usuario")
-          .select("imagenPerfil, admin")
-          .eq("id", user.id)
-          .single();
+          if (datos) {
+            setUserId(datos.id);
+            setEsAdmin(datos.admin === true);
 
-        if (!error && data) {
-          setEsAdmin(data.admin === true);
-
-          if (data.imagenPerfil) {
-            setFotoPerfil(
-              data.imagenPerfil.includes("http")
-                ? data.imagenPerfil
-                : `${perfilStorageUrl}${data.imagenPerfil}`
-            );
+            if (datos.foto_perfil) {
+              setFotoPerfil(
+                datos.foto_perfil.includes("http")
+                  ? datos.foto_perfil
+                  : `${perfilStorageUrl}${datos.foto_perfil}`
+              );
+            }
+          } else {
+            setUserId("");
+            setEsAdmin(false);
+            setFotoPerfil("/iconoPerfil.png");
           }
         }
-      } else {
-        setUserId("");
-        setEsAdmin(false);
-        setFotoPerfil("/iconoPerfil.png");
+      } catch (error) {
+        console.error("Error cargando sesión", error);
+      } finally {
+        setCargando(false);
       }
-    };
+    }
 
-    initUser();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user;
-
-      if (user) {
-        setUserId(user.id);
-      } else {
-        setUserId("");
-        setEsAdmin(false);
-        setFotoPerfil("/iconoPerfil.png");
-      }
-    });
-
-    return () => listener.subscription.unsubscribe();
+    cargarDatosUsuario();
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    router.push(`/listatarjetasjuegos?search=${encodeURIComponent(searchTerm)}&tipo=${encodeURIComponent(selectedTipo)}`);
+    router.push(
+      `/listatarjetasjuegos?search=${encodeURIComponent(searchTerm)}&tipo=${encodeURIComponent(selectedTipo)}`
+    );
   };
 
   return (
     <div className="w-full relative flex flex-row items-center justify-between bg-white text-white px-2 sm:px-6 py-2 sm:py-4">
+
       <div className="flex flex-col items-center">
         <Link href={"/listatarjetasjuegos?search=&tipo="}>
           <h1 className="text-2xl sm:text-5xl font-bold font-Gill text-Lavanda z-10">
             WIKIGAME
           </h1>
         </Link>
+
         {esAdmin && (
           <p className="block text-sm font-medium text-Lavanda">
             Modo Admin
@@ -115,6 +109,7 @@ export function Navbar(props) {
       </form>
 
       <div className="flex flex-row items-center justify-end w-full sm:w-auto gap-0">
+
         {esAdmin && (
           <Link href="/crearjuego">
             <button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2">
@@ -126,13 +121,14 @@ export function Navbar(props) {
         <Link href={userId ? `/perfil/${userId}` : "/iniciarsesion"}>
           <button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2 flex items-center justify-center">
             <img
-              src={fotoPerfil}
+              src={cargando ? "/iconoPerfil.png" : fotoPerfil}
               alt="Perfil"
               className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda"
               onError={(e) => (e.target.src = "/iconoPerfil.png")}
             />
           </button>
         </Link>
+
       </div>
     </div>
   );
