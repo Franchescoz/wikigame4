@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client"; 
 import Link from "next/link";
+import { supabase, supabaseURL } from "@/lib/supabase"; 
 
 export function Navbar(props) {
   const router = useRouter();
@@ -17,12 +17,10 @@ export function Navbar(props) {
   const selectedTipo = props.selectedTipo ?? localTipo;
   const setSelectedTipo = props.setSelectedTipo ?? setLocalTipo;
 
-  const supabase = createClient();
-  const perfilStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
+  const perfilStorageUrl = `${supabaseURL}/storage/v1/object/public/perfil/`;
 
   useEffect(() => {
     const initUser = async () => {
-      await supabase.auth.refreshSession();
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
 
@@ -37,6 +35,7 @@ export function Navbar(props) {
 
         if (!error && data) {
           setEsAdmin(data.admin === true);
+
           if (data.imagenPerfil) {
             setFotoPerfil(
               data.imagenPerfil.includes("http")
@@ -78,15 +77,24 @@ export function Navbar(props) {
     <div className="w-full relative flex flex-row items-center justify-between bg-white text-white px-2 sm:px-6 py-2 sm:py-4">
       <div className="flex flex-col items-center">
         <Link href={"/listatarjetasjuegos?search=&tipo="}>
-          <h1 className="text-2xl sm:text-5xl font-bold font-Gill text-Lavanda z-10">WIKIGAME</h1>
+          <h1 className="text-2xl sm:text-5xl font-bold font-Gill text-Lavanda z-10">
+            WIKIGAME
+          </h1>
         </Link>
-        {esAdmin && <p className="block text-sm font-medium text-Lavanda">Modo Admin</p>}
+        {esAdmin && (
+          <p className="block text-sm font-medium text-Lavanda">
+            Modo Admin
+          </p>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} className="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-1 sm:static sm:flex-row">
-        <select 
-          value={selectedTipo} 
-          onChange={(e) => setSelectedTipo(e.target.value)} 
+      <form
+        onSubmit={handleSubmit}
+        className="absolute left-1/2 transform -translate-x-1/2 flex flex-row items-center gap-1 sm:static sm:flex-row"
+      >
+        <select
+          value={selectedTipo}
+          onChange={(e) => setSelectedTipo(e.target.value)}
           className="bg-Lavanda text-white px-2 sm:px-4 py-1 sm:py-2 rounded-l-lg border border-Lavanda text-sm sm:text-base"
         >
           <option value="">Tipo juego</option>
@@ -96,12 +104,13 @@ export function Navbar(props) {
           <option value="Futbol">Futbol</option>
           <option value="Aventura">Aventura</option>
         </select>
-        <input 
-          type="text" 
-          placeholder="Buscar" 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
-          className="flex-1 px-2 sm:px-4 py-1 sm:py-2 rounded-r-lg bg-white text-Lavanda border border-Lavanda placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-Lavanda text-sm sm:text-base max-w-[120px] sm:max-w-xs" 
+
+        <input
+          type="text"
+          placeholder="Buscar"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 px-2 sm:px-4 py-1 sm:py-2 rounded-r-lg bg-white text-Lavanda border border-Lavanda placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-Lavanda text-sm sm:text-base max-w-[120px] sm:max-w-xs"
         />
       </form>
 
@@ -113,13 +122,14 @@ export function Navbar(props) {
             </button>
           </Link>
         )}
+
         <Link href={userId ? `/perfil/${userId}` : "/iniciarsesion"}>
           <button className="hover:scale-105 w-13 h-13 transition p-1 sm:p-2 flex items-center justify-center">
-            <img 
-              src={fotoPerfil} 
-              alt="Perfil" 
-              className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda" 
-              onError={(e) => e.target.src = "/iconoPerfil.png"} 
+            <img
+              src={fotoPerfil}
+              alt="Perfil"
+              className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda"
+              onError={(e) => (e.target.src = "/iconoPerfil.png")}
             />
           </button>
         </Link>

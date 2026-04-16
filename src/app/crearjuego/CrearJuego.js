@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export default function CrearVistaJuego() {
   const router = useRouter();
@@ -14,11 +14,6 @@ export default function CrearVistaJuego() {
   const [portadaFile, setPortadaFile] = useState(null);
   const [gameplayFiles, setGameplayFiles] = useState([]);
   const [previews, setPreviews] = useState({ portada: "/logo 3.jpg", gameplays: [] });
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY 
-  );
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -100,15 +95,15 @@ export default function CrearVistaJuego() {
         </button>
 
         <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
-          <img src={previews.portada} alt="Portada" className="w-56 h-80 object-cover rounded-lg border-2 border-Lavanda"/>
+          <img src={previews.portada} className="w-56 h-80 object-cover rounded-lg border-2 border-Lavanda"/>
 
           <div className="flex gap-2">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="w-20 h-20 rounded border border-white/20 overflow-hidden bg-white/5">
+              <div key={i} className="w-20 h-20 rounded border overflow-hidden">
                 {previews.gameplays[i] ? (
                   <img src={previews.gameplays[i]} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">+</div>
+                  <div className="w-full h-full flex items-center justify-center text-xs">+</div>
                 )}
               </div>
             ))}
@@ -116,38 +111,16 @@ export default function CrearVistaJuego() {
 
           <input type="file" id="fileInput" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
           
-          <button type="button" onClick={() => document.getElementById('fileInput').click()}className="mt-2 border px-4 py-1 rounded hover:border-Lavanda transition flex flex-col items-center">
-            <img src="upload.png" alt="Subir" className="w-6 h-6 mb-1"/>
-            <span className="text-[10px] text-white/70 uppercase">Seleccionar 4 fotos</span>
+          <button type="button" onClick={() => document.getElementById('fileInput').click()}>
+            Subir imágenes
           </button>
-
-          <div className="hidden sm:flex gap-4 mt-4">
-            <Link href="/listatarjetasjuegos">
-              <button type="button" className="border border-Lavanda text-white px-6 py-2 rounded bg-Lavanda transition font-medulaone">
-                Cancelar
-              </button>
-            </Link>
-            <button type="submit" className="border border-Lavanda text-white px-6 py-2 rounded bg-night hover:bg-Lavanda transition font-medulaone">
-              Crear
-            </button>
-          </div>
         </div>
 
         <div className="flex flex-col gap-3 w-full md:w-2/3 text-white">
-          <label className="text-sm font-motserrat">Titulo del juego:</label>
-          <input type="text" value={titulo} placeholder="Titulo del juego..." onChange={(e)=> setTitulo(e.target.value)} required maxLength={50} className="bg-white text-black rounded px-2 py-1 outline-none"/>
-
-          <label className="text-sm font-motserrat">Consolas:</label>
-          <input type="text" value={consolas} placeholder="Consolas..." onChange={(e)=> setConsolas(e.target.value)} required className="bg-white text-black rounded px-2 py-1 outline-none"/>
-          <p className="text-xs">{consolas.length > 4 ? "Consolas validas" : "No tiene consolas"}</p>
-
-          <label className="text-sm font-motserrat">Tipo de juego:</label>
-          <input type="text" value={tipo} placeholder="Tipo de juegos.." onChange={(e)=> setTipo(e.target.value)} required className="bg-white text-black rounded px-2 py-1 outline-none"/>
-          <p className="text-xs">{tipo.length > 4 ? "Tipos validos" : "No tiene tipos"}</p>
-
-          <label className="text-sm font-motserrat">Descripcion:</label>
-          <textarea value={descripcion} placeholder="Descripcion..." onChange={(e)=> setDescripcion(e.target.value)} required minLength={20} className="bg-white border text-black border-Lavanda rounded px-2 py-2 h-60 resize-none outline-none"/>
-          <p className="text-xs">{descripcion.length > 19 ? "Descripcion valida" : "La descripcion es muy corta"}</p>
+          <input value={titulo} onChange={(e)=> setTitulo(e.target.value)} />
+          <input value={consolas} onChange={(e)=> setConsolas(e.target.value)} />
+          <input value={tipo} onChange={(e)=> setTipo(e.target.value)} />
+          <textarea value={descripcion} onChange={(e)=> setDescripcion(e.target.value)} />
         </div>
       </form>
     </div>

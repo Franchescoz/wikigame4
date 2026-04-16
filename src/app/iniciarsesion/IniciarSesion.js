@@ -1,16 +1,15 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase" 
 
 export default function IniciarSesion() {
   const [email, setEmail] = useState("")
   const [contraseña, setContraseña] = useState("")
   const [cargando, setCargando] = useState(false)
   const router = useRouter()
-
-  const supabase = createClient()
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -30,9 +29,10 @@ export default function IniciarSesion() {
 
       if (data?.user) {
         router.refresh()
-        window.location.href = "/listatarjetasjuegos"
+        router.push("/listatarjetasjuegos") 
       }
     } catch (err) {
+      console.error(err)
       setCargando(false)
     }
   }
@@ -52,7 +52,7 @@ export default function IniciarSesion() {
           required 
           className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
         />
-        <p className="text-white self-start text-sm">
+        <p className="text-white text-sm">
           {email.includes("@") ? "Correo válido" : "Introduce un correo electrónico"}
         </p>
 
@@ -64,7 +64,7 @@ export default function IniciarSesion() {
           required 
           className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" 
         />
-        <p className="text-white self-start text-sm">
+        <p className="text-white text-sm">
           {contraseña.length > 7 ? "Contraseña lista" : "Mínimo 8 caracteres"}
         </p>
 
