@@ -22,7 +22,6 @@ export function Navbar(props) {
   const perfilStorageUrl =
     `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
 
-  
   useEffect(() => {
     async function cargarDatosUsuario() {
       try {
@@ -31,7 +30,7 @@ export function Navbar(props) {
         if (res.ok) {
           const datos = await res.json();
 
-          if (datos) {
+          if (datos?.id) {
             setUserId(datos.id);
             setEsAdmin(datos.admin === true);
 
@@ -123,8 +122,7 @@ export function Navbar(props) {
             <img
               src={cargando ? "/iconoPerfil.png" : fotoPerfil}
               alt="Perfil"
-              className="w-[45px] h-[45px] min-w-[45px] min-h-[45px] object-cover rounded-full border-2 border-Lavanda"
-              onError={(e) => (e.target.src = "/iconoPerfil.png")}
+              className="w-[45px] h-[45px] object-cover rounded-full border-2 border-Lavanda"
             />
           </button>
         </Link>

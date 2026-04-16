@@ -9,6 +9,7 @@ export default function IniciarSesion() {
   const [email, setEmail] = useState("")
   const [contraseña, setContraseña] = useState("")
   const [cargando, setCargando] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -24,28 +25,37 @@ export default function IniciarSesion() {
 
   async function handleLogin(e) {
     e.preventDefault()
+    setError("")
     setCargando(true)
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: contraseña,
-      })
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: contraseña,
+    })
 
-      if (error) {
-        alert("Credenciales incorrectas")
-        setCargando(false)
-        return
-      }
-
-      if (data?.user) {
-        router.refresh()
-        router.replace("/listatarjetasjuegos")
-      }
-    } catch (err) {
-      console.error(err)
+    if (authError) {
+      setError("Correo o contraseña incorrectos.")
       setCargando(false)
+      return
     }
+
+    const userId = data.user.id
+
+    const { data: datosUsuario, error: dbError } = await supabase
+      .from("usuarios")
+      .select("estado")
+      .eq("id", userId)
+      .single()
+
+    if (dbError || datosUsuario?.estado === false) {
+      await supabase.auth.signOut()
+      setError("Tu cuenta ha sido suspendida por un administrador.")
+      setCargando(false)
+      return
+    }
+
+    router.refresh()
+    router.replace("/listatarjetasjuegos")
   }
 
   return (
@@ -58,6 +68,10 @@ export default function IniciarSesion() {
           Iniciar sesión
         </h1>
 
+        {error && (
+          <p className="text-red-400 text-sm text-center">{error}</p>
+        )}
+
         <input
           type="email"
           placeholder="@ Correo electrónico"
@@ -66,9 +80,6 @@ export default function IniciarSesion() {
           required
           className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda"
         />
-        <p className="text-white text-sm">
-          {email.includes("@") ? "Correo válido" : "Introduce un correo electrónico"}
-        </p>
 
         <input
           type="password"
@@ -78,9 +89,6 @@ export default function IniciarSesion() {
           required
           className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda"
         />
-        <p className="text-white text-sm">
-          {contraseña.length > 7 ? "Contraseña lista" : "Mínimo 8 caracteres"}
-        </p>
 
         <div className="flex flex-col sm:flex-row gap-6 mt-6 w-full">
           <button
