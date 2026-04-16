@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export default function CrearVistaJuego() {
   const router = useRouter();
@@ -15,10 +15,7 @@ export default function CrearVistaJuego() {
   const [gameplayFiles, setGameplayFiles] = useState([]);
   const [previews, setPreviews] = useState({ portada: "/logo 3.jpg", gameplays: [] });
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY 
-  );
+
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);

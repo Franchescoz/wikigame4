@@ -1,6 +1,6 @@
 "use client"
 import { use, useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export default function VistaJuego({params}) {
   const [editar, setEditar] = useState(false); 
@@ -13,10 +13,7 @@ export default function VistaJuego({params}) {
   const{id}= use(params)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY 
-  );
+ 
 
   useEffect(()=>{
     checkUserAndFav();
