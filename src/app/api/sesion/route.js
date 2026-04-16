@@ -4,11 +4,11 @@ import { cookies } from 'next/headers'
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
         {
             cookies: {
                 getAll() {
@@ -19,9 +19,7 @@ export async function GET() {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, options)
                         )
-                    } catch (err) {
-                        console.error("Cookie error:", err)
-                    }
+                    } catch (err) {}
                 },
             },
         }
@@ -43,16 +41,17 @@ export async function GET() {
         .single()
 
     if (dbError) {
-        console.error("Error DB:", dbError.message)
         return Response.json(
-            { error: "Perfil no encontrado en la tabla usuario" },
+            { error: "Perfil no encontrado" },
             { status: 404 }
         )
     }
 
     return Response.json({
-        ...perfil,
-        email: user.email,
-        last_sign_in: user.last_sign_in_at
+        id: user.id,
+        nombre: perfil.nombre,
+        foto_perfil: perfil.imagenPerfil,
+        admin: perfil.admin,
+        email: user.email
     })
 }
