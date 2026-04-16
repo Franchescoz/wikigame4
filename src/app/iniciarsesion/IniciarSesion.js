@@ -44,7 +44,7 @@ export default function IniciarSesion() {
     <div className="min-h-screen bg-cover bg-center bg-[url('/fondoSesion.png')] flex items-center justify-center">
       <form onSubmit={handleLogin} className="bg-night bg-opacity-95 p-8 sm:p-14 rounded-3xl space-y-6 w-4/5 sm:w-[600px] lg:w-[700px]">
         <h1 className="text-white text-4xl sm:text-6xl font-medulaone font-bold -mt-8 mb-6 text-center">
-          Iniciar sesión
+          Iniciar sesión 
         </h1>
 
         <input type="email" placeholder="@ Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full p-4 rounded-md text-black bg-white focus:outline-Lavanda" />
