@@ -47,12 +47,18 @@ export default function IniciarSesion() {
       .eq("id", userId)
       .single()
 
-    if (dbError || datosUsuario?.estado === false) {
-      await supabase.auth.signOut()
-      setError("Tu cuenta ha sido suspendida por un administrador.")
-      setCargando(false)
-      return
-    }
+    if (dbError) {
+  setError("Error al verificar usuario.")
+  setCargando(false)
+  return
+}
+
+if (datosUsuario && datosUsuario.estado === false) {
+  await supabase.auth.signOut()
+  setError("Tu cuenta ha sido suspendida por un administrador.")
+  setCargando(false)
+  return
+}
 
     router.refresh()
     router.replace("/listatarjetasjuegos")
