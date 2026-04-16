@@ -1,6 +1,6 @@
 "use client"
 import { use, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function Perfil({ params }) {
@@ -16,10 +16,7 @@ export default function Perfil({ params }) {
     const [userId, setUserId] = useState(null);
     const [esAdmin, setEsAdmin] = useState(false);
 
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-    );
+   
 
     const perfilStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/perfil/`;
     const juegosStorageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/`;
